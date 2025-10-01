@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Trò chơi Ném Còn</title>
+<style>
+  body {
+    text-align: center;
+    background: linear-gradient(to top, #fdf6e3, #d6f5ff);
+    font-family: Arial, sans-serif;
+  }
+  h2 {
+    color: #c0392b;
+  }
+  #game {
+    width: 600px;
+    height: 500px;
+    margin: 20px auto;
+    border: 4px solid #27ae60;
+    border-radius: 10px;
+    position: relative;
+    background: url("https://i.ibb.co/J5DJrGz/festival-bg.jpg");
+    background-size: cover;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+  #vong {
+    width: 120px;
+    height: 120px;
+    border: 6px solid #2980b9;
+    border-radius: 50%;
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.3);
+  }
+  #quaco {
+    width: 50px;
+    height: 50px;
+    background: radial-gradient(circle, red, darkred);
+    border-radius: 50%;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  #message {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 15px;
+    min-height: 40px;
+    color: #2c3e50;
+  }
+  canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<h2>🎯 NÉM CÒN</h2>
+<p>Click trong sân để di chuyển quả còn vào vòng!</p>
+<div id="game">
+  <div id="vong"></div>
+  <div id="quaco"></div>
+  <canvas id="fireworks"></canvas>
+</div>
+<div id="message">Hãy thử đưa quả còn vào vòng!</div>
+
+<script>
+const quaco = document.getElementById("quaco");
+const vong = document.getElementById("vong");
+const message = document.getElementById("message");
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+canvas.width = 600;
+canvas.height = 500;
+
+let particles = [];
+
+// Click để di chuyển quả còn
+document.getElementById("game").addEventListener("click", function(e){
+  const rect = this.getBoundingClientRect();
+  const x = e.clientX - rect.left - quaco.offsetWidth/2;
+  const y = e.clientY - rect.top - quaco.offsetHeight/2;
+
+  quaco.style.left = x + "px";
+  quaco.style.top = y + "px";
+
+  checkTrung();
+});
+
+function checkTrung(){
+  const qc = quaco.getBoundingClientRect();
+  const vg = vong.getBoundingClientRect();
+  
+  const qcX = qc.left + qc.width/2;
+  const qcY = qc.top + qc.height/2;
+  const vgX = vg.left + vg.width/2;
+  const vgY = vg.top + vg.height/2;
+  const dist = Math.sqrt((qcX-vgX)**2 + (qcY-vgY)**2);
+  
+  if(dist < vg.width/2){
+    message.textContent = "🎉 Trúng vòng! Chúc mừng năm mới!";
+    firework(qcX-rectLeft(), qcY-rectTop());
+  } else {
+    message.textContent = "😅 Trượt rồi, thử lại nhé!";
+  }
+}
+
+function rectLeft(){ return document.getElementById("game").getBoundingClientRect().left; }
+function rectTop(){ return document.getElementById("game").getBoundingClientRect().top; }
+
+// Firework effect
+function firework(x,y){
+  for(let i=0;i<40;i++){
+    particles.push({
+      x: x, y: y,
+      dx: Math.random()*4-2,
+      dy: Math.random()*-4-1,
+      life: 50,
+      color: "hsl(" + Math.random()*360 + ",100%,50%)"
+    });
+  }
+  animate();
+}
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach((p,i)=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,3,0,Math.PI*2);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+    p.x+=p.dx;
+    p.y+=p.dy;
+    p.dy+=0.05;
+    p.life--;
+    if(p.life<=0) particles.splice(i,1);
+  });
+  if(particles.length>0) requestAnimationFrame(animate);
+}
+</script>
+</body>
+</html>
